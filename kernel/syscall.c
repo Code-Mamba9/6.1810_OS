@@ -101,6 +101,7 @@ extern uint64 sys_unlink(void);
 extern uint64 sys_link(void);
 extern uint64 sys_mkdir(void);
 extern uint64 sys_close(void);
+extern uint64 sys_trace(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -126,19 +127,52 @@ static uint64 (*syscalls[])(void) = {
 [SYS_link]    sys_link,
 [SYS_mkdir]   sys_mkdir,
 [SYS_close]   sys_close,
+[SYS_trace]   sys_trace,
+};
+
+static char *syscall_names[] = {
+    [SYS_fork]   = "fork",    // 1 
+    [SYS_exit]   = "exit",    // 2
+    [SYS_wait]   = "wait",    // 3
+    [SYS_pipe]   = "pipe",    // 4
+    [SYS_read]   = "read",    // 5
+    [SYS_kill]   = "kill",    // 6
+    [SYS_exec]   = "exec",    // 7
+    [SYS_fstat]  = "fstat",   // 8
+    [SYS_chdir]  = "chdir",   // 9
+    [SYS_dup]    = "dup",     // 10
+    [SYS_getpid] = "getpid",  // 11
+    [SYS_sbrk]   = "sbrk",    // 12
+    [SYS_sleep]  = "sleep",   // 13
+    [SYS_uptime] = "uptime",  // 14
+    [SYS_open]   = "open",    // 15
+    [SYS_write]  = "write",   // 16
+    [SYS_mknod]  = "mknod",   // 17
+    [SYS_unlink] = "unlink",  // 18
+    [SYS_link]   = "link",    // 19
+    [SYS_mkdir]  = "mkdir",   // 20
+    [SYS_close]  = "close",   // 21
+    [SYS_trace]  = "trace",   // 22
 };
 
 void
 syscall(void)
 {
-  int num;
+  int num, mask;
   struct proc *p = myproc();
 
   num = p->trapframe->a7;
   if(num > 0 && num < NELEM(syscalls) && syscalls[num]) {
     // Use num to lookup the system call function for num, call it,
     // and store its return value in p->trapframe->a0
-    p->trapframe->a0 = syscalls[num]();
+    int ret = syscalls[num]();
+    mask = p->mask;
+    if (mask & (1 << num)) {
+      int pid = p->pid;
+      char* name = syscall_names[num];
+      printf("%d: syscall %s -> %d\n", pid, name, ret);
+    }
+    p->trapframe->a0 = ret;
   } else {
     printf("%d %s: unknown sys call %d\n",
             p->pid, p->name, num);
