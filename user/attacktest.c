@@ -102,7 +102,6 @@ main(int argc, char *argv[])
       if(strcmp(secret, output) == 0) {
         printf("OK: secret is %s\n", output);
       } else {
-        // printf("%s     %s\n", secret, output);
         printf("FAIL: no/incorrect secret\n");
       }
     }
