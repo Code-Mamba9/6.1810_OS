@@ -161,6 +161,7 @@ found:
 static void
 freeproc(struct proc *p)
 {
+  printf("Freeproc function, size = %lx, %ld\n", p->sz, p->sz);
   if(p->trapframe)
     kfree((void*)p->trapframe);
   p->trapframe = 0;
@@ -231,6 +232,7 @@ proc_freepagetable(pagetable_t pagetable, uint64 sz)
   uvmunmap(pagetable, TRAMPOLINE, 1, 0);
   uvmunmap(pagetable, TRAPFRAME, 1, 0);
   uvmunmap(pagetable, USYSCALL, 1, 0);
+  printf("In procFreepagetable, size is %ld\n", sz);
   uvmfree(pagetable, sz);
 }
 
